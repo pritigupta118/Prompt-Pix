@@ -1,7 +1,11 @@
+import Editor from "@/modules/editor";
 import Image from "next/image";
 
-export default function Home() {
+
+export default function Page() {
   return (
-    <div className=""></div>
+    <div>
+      <Editor/>
+    </div>
   );
 }
