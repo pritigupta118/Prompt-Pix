@@ -15,7 +15,10 @@ import { motion } from "framer-motion";
 // import UploadZone from "./upload-zone";
 import { Button } from "@/components/ui/button";
 // import CanvasEditor from "./canvas-editor";
-// import { saveAs } from "file-saver";
+import { saveAs} from "file-saver"
+import { FileUpload } from "@/components/ui/file-upload";
+import UploadZone from "./upload-zone";
+
 
 type JobStatus = "idle" | "queued" | "processing" | "completed" | "error";
 
@@ -142,7 +145,17 @@ const Editor = () => {
   };
 
   const handleExport = (format: string) => {
+     if (!processedImage) return;
+
+    saveAs(processedImage, `prompt_pix-${Date.now()}.${format}`);
   };
+
+    const [files, setFiles] = useState<File[]>([]);
+  const handleFileUpload = (files: File[]) => {
+    setFiles(files);
+    console.log(files);
+  };
+ 
 
   return (
     <section id="editor" className="py-24 relative overflow-hidden">
@@ -177,7 +190,7 @@ const Editor = () => {
             viewport={{ once: true }}
             className="lg:col-span-1"
           >
-            {/* <UploadZone onImageUpload={handleImageUpload} /> */}
+            <UploadZone onImageUpload={handleImageUpload}/>
 
             {/* Toolbar */}
             <div className="mt-6 space-y-3">
