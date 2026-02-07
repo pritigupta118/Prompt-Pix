@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { saveAs} from "file-saver"
 import { FileUpload } from "@/components/ui/file-upload";
 import UploadZone from "./upload-zone";
+import CanvasEditor from "./canvas-editor";
 
 
 type JobStatus = "idle" | "queued" | "processing" | "completed" | "error";
@@ -290,11 +291,11 @@ const Editor = () => {
             viewport={{ once: true }}
             className="lg:col-span-2"
           >
-            {/* <CanvasEditor
+            <CanvasEditor
               originalImage={uploadedImage}
               processedImage={processedImage}
               isProcessing={currentJob?.status === "processing"}
-            /> */}
+            />
 
             {/* Secondery Tools */}
             <motion.div

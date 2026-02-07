@@ -1,6 +1,7 @@
 import { FileUpload } from '@/components/ui/file-upload';
-import { Crown } from 'lucide-react';
-import React, { useState } from 'react'
+import { Crown, X } from 'lucide-react';
+import { useState } from 'react'
+import { motion } from "framer-motion"
 
 
 interface UploadZoneProps {
@@ -102,18 +103,57 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
         return data;
     };
 
-
+    const clearImage = () => {
+        setUploadedImage(null)
+        onImageUpload("")
+    }
 
     return (
-        <>
-        <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
-            <FileUpload onChange={handleFileUpload} />
-            <p className='text-muted-foreground text-sm flex justify-center'>
-                {isUploading ? "Please wait while we upload your image" : "Drag & drop or click to browse"}
-            </p>
-           
-        </div>
-         {
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative"
+        >
+            {
+                uploadedImage ? (
+                    <div className="relative glass rounded-xl p-4 border border-card-border">
+                        <button
+                            onClick={clearImage}
+                            className="absolute top-2 right-2 z-10 p-1 bg-background/80 rounded-full hover:bg-destructive/20 transition-colors"
+                        >
+                            <X className="h-4 w-4 text-foreground hover:text-destructive" />
+                        </button>
+
+                        <div className="aspect-square rounded-lg overflow-hidden">
+                            <img
+                                src={uploadedImage}
+                                alt="Uploaded Preview"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div className="mt-3 text-center">
+                            <p className="text-sm font-medium text-foreground">
+                                {uploadedImage.startsWith("data:")
+                                    ? "Local preview"
+                                    : "Uploaded to cloud"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Ready for AI magic ✨
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
+                        <FileUpload onChange={handleFileUpload} />
+                        <p className='text-muted-foreground text-sm flex justify-center'>
+                            {isUploading ? "Please wait while we upload your image" : "Drag & drop or click to browse"}
+                        </p>
+
+                    </div>
+                )
+            }
+            {
                 usageData && (
                     <div className="mt-4 text-center">
                         <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
@@ -130,7 +170,7 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
                     </div>
                 )
             }
-        </>
+        </motion.div>
     );
 }
 
