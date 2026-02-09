@@ -1,4 +1,6 @@
-import React from 'react'
+import { motion } from "framer-motion"
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface CanvasEditorProps {
   originalImage: string | null;
@@ -12,6 +14,10 @@ const CanvasEditor = ({
     processedImage,
     isProcessing
 }: CanvasEditorProps) => {
+    const [showComparison, setShowComparison] = useState(false);
+  const [sliderPosition, setSliderPosition] = useState(50);
+
+
     if (!originalImage) {
     return (
       <div className="shadow-glass rounded-xl border border-gray-800 aspect-4/3 flex items-center justify-center">
@@ -31,8 +37,33 @@ const CanvasEditor = ({
   }
 
   return (
-    <div>
-      canvas editor
+    <div className='space-y-4'>
+
+      <motion.div
+      layout
+      className="relative glass rounded-xl border border-card-border overflow-hidden aspect-[4/3]"
+      >
+      {
+        isProcessing  && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 mx-auto mb-3 text-primary animate-spin" />
+              <p className="text-foreground font-medium">
+                AI is working its magic...
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                This usually takes a few seconds
+              </p>
+            </div>
+          </div>
+        )
+      }
+      </motion.div>
+       {/* {
+        showComparison && processedImage ? (
+
+        )
+       } */}
     </div>
   )
 }
