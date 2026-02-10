@@ -1,7 +1,8 @@
 import { FileUpload } from '@/components/ui/file-upload';
 import { Crown, X } from 'lucide-react';
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from "framer-motion"
+import Image from 'next/image';
 
 
 interface UploadZoneProps {
@@ -17,6 +18,10 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
         plan: string;
         canUpload: boolean;
     } | null>(null);
+
+    useEffect(()=>{
+        checkUsage()?.catch(console.error)
+    },[])
 
 
     const handleFileUpload = async (files: File[]) => {
@@ -125,7 +130,7 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
                         </button>
 
                         <div className="aspect-square rounded-lg overflow-hidden">
-                            <img
+                            <Image
                                 src={uploadedImage}
                                 alt="Uploaded Preview"
                                 className="w-full h-full object-cover"

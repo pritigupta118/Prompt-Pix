@@ -1,6 +1,7 @@
+import Footer from "@/components/footer";
 import Editor from "@/modules/editor";
 import Features from "@/modules/features";
-import Image from "next/image";
+
 
 
 export default function Page() {
@@ -8,6 +9,7 @@ export default function Page() {
     <div>
       <Features/>
       <Editor/>
+      <Footer/>
     </div>
   );
 }
