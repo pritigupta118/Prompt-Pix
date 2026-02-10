@@ -11,6 +11,7 @@
   "dependencies": {
     "@base-ui/react": "^1.1.0",
     "@hookform/resolvers": "^5.2.2",
+    "@imagekit/next": "^2.1.4",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@tabler/icons-react": "^3.36.1",

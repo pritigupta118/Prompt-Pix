@@ -131,15 +131,64 @@ const Editor = () => {
   const [showPromptInput, setShowPromptInput] = useState<boolean>(false);
 
   const handleImageUpload = (imageUrl: string) => {
+    setUploadedImage(imageUrl)
+    setProcessedImage(null)
+    setCurrentJob(null)
   };
 
   const handlePromptSubmit = async () => {
   };
 
-//   const getImageKitTransform = (tooldId: string, prompt?: string): string => {
-//   };
+  const getImagekitTransform = (tooldId: string, prompt?: string): string => {
+        const transforms: Record<string, string> = {
+      "e-bgremove": "e-bgremove",
+      "e-removedotbg": "e-removedotbg",
+      "e-changebg": prompt
+        ? `e-changebg-prompt-${encodeURIComponent(prompt)}`
+        : "e-changebg",
+      "e-edit": prompt ? `e-edit:${encodeURIComponent(prompt)}` : "e-edit",
+      "bg-genfill": prompt
+        ? `bg-genfill:${encodeURIComponent(prompt)}`
+        : "bg-genfill",
+      "e-dropshadow": "e-dropshadow",
+      "e-retouch": "e-retouch",
+      "e-upscale": "e-upscale",
+      "e-genvar": prompt
+        ? `e-genvar:${encodeURIComponent(prompt)}`
+        : "e-genvar",
+      "e-crop-face": "e-crop-face",
+      "e-crop-smart": "e-crop-smart",
+    };
+
+    return transforms[tooldId] || "";
+  };
 
   const handleToolClick = async (toolId: string) => {
+    if (!uploadedImage) return
+
+    const tool = allTools.find((t)=> t.id === toolId)
+
+    if (!tool) return
+
+    const newActiveEffects = new Set(activeEffects)
+    if (newActiveEffects.has(toolId)) {
+      newActiveEffects.delete(toolId)
+      setActiveEffects(newActiveEffects)
+
+      const remainingEffects = Array.from(newActiveEffects)
+
+      const newImgUrl = remainingEffects.length > 0 ? `${uploadedImage}?tr=${remainingEffects.map((effect)=> getImagekitTransform(effect)).join(",")}` : uploadedImage
+      setProcessedImage(newImgUrl)
+      return
+    }
+
+    if (tool.hasPrompt) {
+      setShowPromptInput(true)
+      setPromptText("")
+      return
+    }
+
+    await applyEffect(toolId);
   };
 
   const applyEffect = async (toolId: string, prompt?: string) => {
