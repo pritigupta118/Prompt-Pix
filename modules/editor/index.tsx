@@ -137,6 +137,15 @@ const Editor = () => {
   };
 
   const handlePromptSubmit = async () => {
+    if (!promptText.trim()) return;
+
+    // Find the tool that was clicked
+    const tool = allTools.find((t) => t.hasPrompt && !activeEffects.has(t.id));
+    if (!tool) return;
+
+    await applyEffect(tool.id, promptText);
+    setShowPromptInput(false);
+    setPromptText("");
   };
 
   const getImagekitTransform = (tooldId: string, prompt?: string): string => {

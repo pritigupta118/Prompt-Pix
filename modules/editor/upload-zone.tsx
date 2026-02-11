@@ -2,7 +2,9 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Crown, X } from 'lucide-react';
 import { useEffect, useState } from 'react'
 import { motion } from "framer-motion"
+import { ImageKitInvalidRequestError, ImageKitServerError, ImageKitUploadNetworkError, upload } from "@imagekit/next"
 import Image from 'next/image';
+
 
 
 interface UploadZoneProps {
@@ -19,10 +21,55 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
         canUpload: boolean;
     } | null>(null);
 
-    useEffect(()=>{
+    useEffect(() => {
         checkUsage()?.catch(console.error)
-    },[])
+    }, [])
 
+    const getUploadAuthParams = async () => {
+        const response = await fetch("/api/upload-auth")
+
+        if (!response.ok) {
+            throw new Error("Failed to get upload auth params");
+        }
+        const data = await response?.json();
+
+        return data;
+    }
+
+    const uploadToImageKit = async (file: File): Promise<string> => {
+        try {
+            const { token, expire, signature, publicKey } =
+                await getUploadAuthParams();
+
+            const result = await upload({
+                file,
+                fileName: file?.name,
+                folder: "prompt-pix-upload",
+                expire,
+                token,
+                signature,
+                publicKey,
+                onProgress: (event) => {
+                    // Update progress if needed
+                    console.log(
+                        `Upload progress: ${(event.loaded / event.total) * 100}%`
+                    );
+                },
+            })
+
+            return result.url || ""
+        } catch (error) {
+            if (error instanceof ImageKitInvalidRequestError) {
+                throw new Error("Invalid upload request");
+            } else if (error instanceof ImageKitServerError) {
+                throw new Error("ImageKit server error");
+            } else if (error instanceof ImageKitUploadNetworkError) {
+                throw new Error("Network error during upload");
+            } else {
+                throw new Error("Upload failed");
+            }
+        }
+    }
 
     const handleFileUpload = async (files: File[]) => {
         const imageFile = files.find(file =>
@@ -47,9 +94,9 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
             }
 
             /* ---------- 2. Upload Image ---------- */
-            // const imageUrl = await uploadToImageKit(imageFile);
-            // setUploadedImage(imageUrl);
-            // onImageUpload(imageUrl);
+            const imageUrl = await uploadToImageKit(imageFile);
+            setUploadedImage(imageUrl);
+            onImageUpload(imageUrl);
             /* ---------- 3. Increment Usage ---------- */
             const updatedUsage = await updateUsage();
             setUsageData(updatedUsage);
