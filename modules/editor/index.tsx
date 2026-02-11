@@ -192,7 +192,101 @@ const Editor = () => {
   };
 
   const applyEffect = async (toolId: string, prompt?: string) => {
+    if(!uploadedImage) return
+    const newJob: ProcessingJob = {
+      id: Date.now().toString(),
+      type: toolId,
+      status: "queued",
+      progress: 0,
+    };
+
+    setCurrentJob(newJob);
+
+    // Apply effect to active effects
+    const newActiveEffects = new Set(activeEffects);
+    newActiveEffects.add(toolId);
+    setActiveEffects(newActiveEffects);
+
+    // Generate the ImageKit transformation URL
+    const allEffects = Array.from(newActiveEffects);
+    const transforms = allEffects.map((effect) =>
+      getImagekitTransform(effect, effect === toolId ? prompt : undefined)
+    );
+    const newImageUrl = `${uploadedImage}?tr=${transforms.join(",")}`;
+
+    try {
+      // Start polling the AI transformation URL to check when it's complete
+      setCurrentJob((prev) =>
+        prev ? { ...prev, status: "processing", progress: 10 } : null
+      );
+
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutes max (5s intervals)
+      const pollInterval = 5000; // 5seconds / 5k ms
+          const pollImageKit = async (): Promise<boolean> => {
+        attempts++;
+
+        try {
+          const response = await fetch(newImageUrl, {
+            method: "HEAD", // only check headers, don't download image
+            cache: "no-cache", // don't use cached version
+          });
+
+          if (response.ok) {
+            // AI transformation is complete
+            setProcessedImage(newImageUrl);
+            setCurrentJob((prev) =>
+              prev ? { ...prev, progress: 100, status: "completed" } : null
+            );
+
+            const completedJob = {
+              ...newJob,
+              status: "completed" as JobStatus,
+              progress: 100,
+              result: newImageUrl,
+            };
+            setEditHistory((prev) => [completedJob, ...prev.slice(0, 2)]);
+            return true;
+          }
+        } catch (error) {
+          console.log(`Poll attempt ${attempts}: AI still processing...`);
+        }
+
+        // update progress based on attempts
+        const progress = Math.min(10 + attempts * 1.5, 90); // 10% to 90%
+        setCurrentJob((prev) => (prev ? { ...prev, progress } : null));
+
+        if (attempts >= maxAttempts) {
+          // Timeout - mark as completed anyway
+          setProcessedImage(newImageUrl);
+          setCurrentJob((prev) =>
+            prev ? { ...prev, progress: 100, status: "completed" } : null
+          );
+
+          const completedJob = {
+            ...newJob,
+            status: "completed" as JobStatus,
+            progress: 100,
+            result: newImageUrl,
+          };
+          setEditHistory((prev) => [completedJob, ...prev.slice(0, 2)]);
+          return true;
+        }
+
+        // Continue polling
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        return pollImageKit();
+      };
+
+      // starting polling
+      await pollImageKit();
+    } catch (error) {
+      console.error("Error applying effect:", error);
+      setCurrentJob((prev) => (prev ? { ...prev, status: "error" } : null));
+    }
   };
+
+  
 
   const handleExport = (format: string) => {
      if (!processedImage) return;
